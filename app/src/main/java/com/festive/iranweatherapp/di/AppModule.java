@@ -1,5 +1,7 @@
 package com.festive.iranweatherapp.di;
 
+import javax.inject.Singleton;
+
 import dagger.Module;
 import dagger.Provides;
 import okhttp3.OkHttpClient;
@@ -10,6 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 @Module
 public abstract class AppModule {
 
+    @Singleton
     @Provides
     public static Retrofit provideRetrofit() {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
