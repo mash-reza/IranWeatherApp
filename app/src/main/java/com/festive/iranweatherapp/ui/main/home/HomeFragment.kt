@@ -122,7 +122,7 @@ class HomeFragment : DaggerFragment() {
                     chooseFragmentLoadingLayout.visibility = View.VISIBLE
                     chooseFragmentLoadingLayout.bringToFront()
                     it.data?.let { data ->
-                        chooseFragmentCityNameTextView.text = data.name
+                        chooseFragmentCityNameTextView.text = homeViewModel.observeCity().value?.data?.name?:data.name
                         glide.load(Uri.parse("file:///android_asset/${CodeToIconMapper.map[data.iconId]}"))
                             .into(chooseFragmentWeatherIMageView)
                         tempImageLoader(data.temp)
