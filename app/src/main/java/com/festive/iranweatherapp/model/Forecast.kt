@@ -1,25 +1,32 @@
 package com.festive.iranweatherapp.model
 
-import java.time.Instant
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
+@Entity
 data class Forecast(
-    val id: Int,
-    val station: String,
-    val date: Instant,
-    val humidity: Double,
-    val lat: Double,
-    val lon: Double,
-    val minTemp1: Double,
-    val maxTemp1: Double,
-    val minTemp2: Double,
-    val maxTemp2: Double,
-    val minTemp3: Double,
-    val maxTemp3: Double,
-    val day1: String,
-    val day2: String,
-    val day3: String,
-    val windSpeed: Double,
-    val windDirectionDegree: Int,
-    val cloudCover: Int,
-    val state: String
+    @PrimaryKey
+    val cityId:Int=-1,
+    val iconId: Int = -1,
+    val description: String = "",
+    val icon: String = "",
+    val temp: Double = Double.NaN,
+    @ColumnInfo(name = "temp_min")
+    val tempMin: Double = Double.NaN,
+    @ColumnInfo(name = "temp_max")
+    val tempMax: Double = Double.NaN,
+    val humidity: Int = -1,
+    val pressure: Int = -1,
+    val visibility: Int = -1,
+    @ColumnInfo(name = "wind_speed")
+    val windSpeed: Double = Double.NaN,
+    @ColumnInfo(name = "wind_degree")
+    val windDegree: Int = -1,
+    val sunrise: Long = -1,
+    val sunset: Long = -1,
+    val date: Long = -1,
+    val name: String = "",
+    @ColumnInfo(name = "server_code")
+    val serverCode: Int = -1
 )
