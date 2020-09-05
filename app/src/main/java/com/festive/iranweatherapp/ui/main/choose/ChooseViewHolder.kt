@@ -8,4 +8,5 @@ import kotlinx.android.synthetic.main.choose_list_item.view.*
 
 class ChooseViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     val name:TextView = view.findViewById(R.id.chooseListItemNameTextView)
+    val state:TextView = view.findViewById(R.id.chooseListItemStateTextView)
 }

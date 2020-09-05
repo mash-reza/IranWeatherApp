@@ -2,6 +2,7 @@ package com.festive.iranweatherapp.ui.main
 
 import android.os.Bundle
 import android.view.Menu
+import android.widget.Toast
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -11,6 +12,11 @@ import com.festive.iranweatherapp.R
 import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 class MainActivity : DaggerAppCompatActivity() {
@@ -21,6 +27,8 @@ class MainActivity : DaggerAppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
 
     @Inject lateinit var mainViewModel: MainViewModel
+
+    private var requestedFinish:Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,13 +49,24 @@ class MainActivity : DaggerAppCompatActivity() {
         return true
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment)
-        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-    }
+//    override fun onSupportNavigateUp(): Boolean {
+//        val navController = findNavController(R.id.nav_host_fragment)
+//        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+//        return true
+//    }
 
     override fun onBackPressed() {
 //        finish()
+        if(requestedFinish){
+           finish()
+        }else{
+            requestedFinish = true
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(2000)
+                requestedFinish = false
+            }
+            Toast.makeText(this, "برای خروج مجددا دکمه بازگشت را بفشارید", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupNavigation(){

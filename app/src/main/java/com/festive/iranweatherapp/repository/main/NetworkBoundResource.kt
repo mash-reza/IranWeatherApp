@@ -47,10 +47,10 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
         result.addSource(dbSource) {
             setValue(Resource.loading())
         }
-        result.addSource(apiResponse) {
+        result.addSource(apiResponse) {response->
             result.removeSource(apiResponse)
             result.removeSource(dbSource)
-            when (it) {
+            when (response) {
                 is ApiResponse.Empty -> {
                     result.addSource(dbSource) {
                         setValue(Resource.successful(it))
@@ -59,7 +59,7 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
                 is ApiResponse.Error -> {
                     onFetchFailed()
                     result.addSource(dbSource) {
-                        setValue(Resource.error("shit"))
+                        setValue(Resource.error(response.error))
                     }
                 }
                 is ApiResponse.Success -> {

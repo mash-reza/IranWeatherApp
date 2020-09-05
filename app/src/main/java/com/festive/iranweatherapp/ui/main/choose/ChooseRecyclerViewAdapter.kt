@@ -18,6 +18,7 @@ class ChooseRecyclerViewAdapter(val context: Context,private val cities: List<Ci
 
     override fun onBindViewHolder(holder: ChooseViewHolder, position: Int) {
         holder.name.text = cities[position].name
+        holder.state.text = "استان "+cities[position].state
         holder.name.setOnClickListener {
             onCityItemSelectListener.onSelect(cities[position].id)
         }

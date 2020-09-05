@@ -34,7 +34,7 @@ class MainRepository @Inject constructor() {
             }
 
             override fun shouldFetch(data: Forecast?): Boolean {
-                return (data == null) || (data.iconId == -1) || (isForecastExpired(data))
+                return (data == null) || (data.cityId == -1) || (isForecastExpired(data))
             }
 
             override suspend fun loadFromDb(): LiveData<Forecast> {
@@ -47,7 +47,7 @@ class MainRepository @Inject constructor() {
     }
 
     private fun isForecastExpired(forecast: Forecast) =
-        ((Date().time / 1000) - forecast.date) > 3600
+        ((Date().time / 1000) - forecast.date) > 1800
 
 
     suspend fun getCities(): Resource<List<City>?> {

@@ -15,7 +15,11 @@ import com.festive.iranweatherapp.ui.main.MainState
 import com.festive.iranweatherapp.ui.main.MainViewModel
 import dagger.android.support.DaggerFragment
 import kotlinx.android.synthetic.main.fragment_home.*
+import retrofit2.Response
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.floor
@@ -48,14 +52,6 @@ class HomeFragment : DaggerFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
-//        getForecast(18018)
-//        observeForecast()
-//        getCities()
-//        observeCities()
-//        getChosenCity(119505)
-//        observeChosenCity()
-
         setCity()
         observeMainState()
         navigateToChooseFragment()
@@ -80,9 +76,19 @@ class HomeFragment : DaggerFragment() {
     private fun observeCity() {
         homeViewModel.observeCity().observe(viewLifecycleOwner, Observer {
 //            requireActivity().toolbar.title = it.data?.name
-            it.data?.let { city ->
-                getForecast(city.id)
-                observeForecast()
+            it?.let { resource ->
+                when(resource){
+                    is Resource.Success->{
+                        getForecast(resource.data!!.id)
+                        observeForecast()
+                    }
+                    is Resource.Error->{
+
+                    }
+                    is Resource.Loading->{
+
+                    }
+                }
             }
         })
     }
@@ -102,27 +108,27 @@ class HomeFragment : DaggerFragment() {
     private fun observeForecast() {
         homeViewModel.observeForecast().removeObservers(viewLifecycleOwner)
         homeViewModel.observeForecast().observe(viewLifecycleOwner, Observer {
-            when (it.status) {
-                Resource.AuthStatus.LOADING -> {
+            when (it) {
+                is Resource.Loading -> {
                     Log.d(TAG, "forecast loading...")
                     chooseFragmentErrorLayout.visibility = View.GONE
                     chooseFragmentInfoLayout.visibility = View.GONE
                     chooseFragmentLoadingLayout.visibility = View.VISIBLE
                     chooseFragmentLoadingLayout.bringToFront()
                 }
-                Resource.AuthStatus.ERROR -> {
-                    Log.d(TAG, "forecast error: ${it.message}")
+                is Resource.Error -> {
+                    Log.d(TAG, "forecast error: ${(it as Resource.Error).throwable.message}")
                     chooseFragmentInfoLayout.visibility = View.GONE
                     chooseFragmentLoadingLayout.visibility = View.GONE
                     chooseFragmentErrorLayout.visibility = View.VISIBLE
                     chooseFragmentErrorLayout.bringToFront()
                 }
-                Resource.AuthStatus.SUCCESSFUL -> {
+                is Resource.Success -> {
                     chooseFragmentErrorLayout.visibility = View.GONE
                     chooseFragmentLoadingLayout.visibility = View.VISIBLE
                     chooseFragmentLoadingLayout.bringToFront()
                     it.data?.let { data ->
-                        chooseFragmentCityNameTextView.text = homeViewModel.observeCity().value?.data?.name?:data.name
+                        chooseFragmentCityNameTextView.text = (homeViewModel.observeCity().value as Resource.Success).data?.name?:data.name
                         glide.load(Uri.parse("file:///android_asset/${CodeToIconMapper.map[data.iconId]}"))
                             .into(chooseFragmentWeatherIMageView)
                         tempImageLoader(data.temp)
