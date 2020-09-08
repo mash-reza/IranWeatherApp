@@ -7,11 +7,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.festive.iranweatherapp.R
+import com.festive.iranweatherapp.ViewModelProviderFactory
 import com.festive.iranweatherapp.repository.main.Resource
 import com.festive.iranweatherapp.ui.main.MainState
 import com.festive.iranweatherapp.ui.main.MainViewModel
@@ -26,9 +28,11 @@ class ChooseFragment : DaggerFragment() {
     }
 
     @Inject
+    lateinit var viewModelProviderFactory: ViewModelProviderFactory
+
     lateinit var mainViewModel: MainViewModel
 
-    @Inject
+
     lateinit var chooseViewModel: ChooseViewModel
 
     @Inject
@@ -38,6 +42,14 @@ class ChooseFragment : DaggerFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        mainViewModel = ViewModelProvider(
+            viewModelStore,
+            viewModelProviderFactory
+        ).get(MainViewModel::class.java)
+        chooseViewModel = ViewModelProvider(
+            viewModelStore,
+            viewModelProviderFactory
+        ).get(ChooseViewModel::class.java)
         getCities()
     }
 
@@ -59,7 +71,7 @@ class ChooseFragment : DaggerFragment() {
     private fun initRecyclerView() {
         chooseFragmentRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false)
-            addItemDecoration(DividerItemDecoration(requireContext(),RecyclerView.VERTICAL))
+            addItemDecoration(DividerItemDecoration(requireContext(), RecyclerView.VERTICAL))
         }
     }
 
@@ -94,12 +106,17 @@ class ChooseFragment : DaggerFragment() {
                                 setCity(it)
                             })
                     chooseFragmentRecyclerView.adapter = adapter
+                    chooseFragmentLoadingLayout.visibility = View.GONE
+                    chooseFragmentSuccessLayout.visibility = View.VISIBLE
+                    chooseFragmentSuccessLayout.bringToFront()
                 }
                 is Resource.Error -> {
 
                 }
                 is Resource.Loading -> {
-
+                    chooseFragmentSuccessLayout.visibility = View.GONE
+                    chooseFragmentLoadingLayout.visibility = View.VISIBLE
+                    chooseFragmentLoadingLayout.bringToFront()
                 }
             }
         })
@@ -110,9 +127,9 @@ class ChooseFragment : DaggerFragment() {
     }
 
     private fun observeMainState() {
-        mainViewModel.observeMainState().observe(requireActivity(), Observer {
+        mainViewModel.observeMainState().observe(viewLifecycleOwner, Observer {
             if (it is MainState.Home) {
-                navController.navigate(R.id.action_chooseFragment_to_nav_home)
+                navController.navigate(R.id.action_nav_choose_to_nav_home)
             }
         })
     }

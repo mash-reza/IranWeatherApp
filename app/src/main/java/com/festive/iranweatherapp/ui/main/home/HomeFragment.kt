@@ -7,19 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import com.bumptech.glide.RequestManager
 import com.festive.iranweatherapp.R
+import com.festive.iranweatherapp.ViewModelProviderFactory
 import com.festive.iranweatherapp.repository.main.Resource
+import com.festive.iranweatherapp.repository.main.network.NoNetworkConnectivityException
 import com.festive.iranweatherapp.ui.main.MainState
 import com.festive.iranweatherapp.ui.main.MainViewModel
 import dagger.android.support.DaggerFragment
 import kotlinx.android.synthetic.main.fragment_home.*
-import retrofit2.Response
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.floor
@@ -31,16 +30,31 @@ class HomeFragment : DaggerFragment() {
     }
 
     @Inject
-    lateinit var homeViewModel: HomeViewModel
+    lateinit var viewModelProviderFactory: ViewModelProviderFactory
 
-    @Inject
     lateinit var mainViewModel: MainViewModel
+
+
+    lateinit var homeViewModel:HomeViewModel
 
     @Inject
     lateinit var navController: NavController
 
     @Inject
     lateinit var glide: RequestManager
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mainViewModel = ViewModelProvider(
+            viewModelStore,
+            viewModelProviderFactory
+        ).get(MainViewModel::class.java)
+
+        homeViewModel = ViewModelProvider(
+           viewModelStore,
+            viewModelProviderFactory
+        ).get(HomeViewModel::class.java)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,10 +68,17 @@ class HomeFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         setCity()
         observeMainState()
-        navigateToChooseFragment()
+        handleNavigateToChooseFragment()
+        handleRetry()
     }
 
-    private fun navigateToChooseFragment() {
+    private fun handleRetry() {
+        homeFragmentErrorRetryButton.setOnClickListener {
+            observeMainState()
+        }
+    }
+
+    private fun handleNavigateToChooseFragment() {
         chooseFragmentCityNameTextView.setOnClickListener {
             mainViewModel.setMainState(MainState.Choose)
         }
@@ -77,15 +98,15 @@ class HomeFragment : DaggerFragment() {
         homeViewModel.observeCity().observe(viewLifecycleOwner, Observer {
 //            requireActivity().toolbar.title = it.data?.name
             it?.let { resource ->
-                when(resource){
-                    is Resource.Success->{
+                when (resource) {
+                    is Resource.Success -> {
                         getForecast(resource.data!!.id)
                         observeForecast()
                     }
-                    is Resource.Error->{
+                    is Resource.Error -> {
 
                     }
-                    is Resource.Loading->{
+                    is Resource.Loading -> {
 
                     }
                 }
@@ -111,35 +132,45 @@ class HomeFragment : DaggerFragment() {
             when (it) {
                 is Resource.Loading -> {
                     Log.d(TAG, "forecast loading...")
-                    chooseFragmentErrorLayout.visibility = View.GONE
-                    chooseFragmentInfoLayout.visibility = View.GONE
-                    chooseFragmentLoadingLayout.visibility = View.VISIBLE
-                    chooseFragmentLoadingLayout.bringToFront()
+                    homeFragmentErrorLayout.visibility = View.GONE
+                    homeFragmentInfoLayout.visibility = View.GONE
+                    homeFragmentLoadingLayout.visibility = View.VISIBLE
+                    homeFragmentLoadingLayout.bringToFront()
                 }
                 is Resource.Error -> {
                     Log.d(TAG, "forecast error: ${(it as Resource.Error).throwable.message}")
-                    chooseFragmentInfoLayout.visibility = View.GONE
-                    chooseFragmentLoadingLayout.visibility = View.GONE
-                    chooseFragmentErrorLayout.visibility = View.VISIBLE
-                    chooseFragmentErrorLayout.bringToFront()
+                    if (it.throwable is NoNetworkConnectivityException) {
+                        homeFragmentErrorMessegeTextView.text =
+                            "دستگاه به اینترنت متصل نیست! لطفا اتصال اینترنت را چک کرده و مجددا تلاش کنید!"
+                        homeFragmentErrorIconImageView.setImageResource(R.drawable.internet_error)
+                    } else {
+                        homeFragmentErrorMessegeTextView.text = "خطایی رخ داده است!"
+                        homeFragmentErrorIconImageView.setImageResource(R.drawable.error_icon)
+                    }
+                    homeFragmentInfoLayout.visibility = View.GONE
+                    homeFragmentLoadingLayout.visibility = View.GONE
+                    homeFragmentErrorLayout.visibility = View.VISIBLE
+                    homeFragmentErrorLayout.bringToFront()
                 }
                 is Resource.Success -> {
-                    chooseFragmentErrorLayout.visibility = View.GONE
-                    chooseFragmentLoadingLayout.visibility = View.VISIBLE
-                    chooseFragmentLoadingLayout.bringToFront()
+                    homeFragmentErrorLayout.visibility = View.GONE
+                    homeFragmentLoadingLayout.visibility = View.VISIBLE
+                    homeFragmentLoadingLayout.bringToFront()
                     it.data?.let { data ->
-                        chooseFragmentCityNameTextView.text = (homeViewModel.observeCity().value as Resource.Success).data?.name?:data.name
+                        chooseFragmentCityNameTextView.text =
+                            (homeViewModel.observeCity().value as Resource.Success).data?.name
+                                ?: data.name
                         glide.load(Uri.parse("file:///android_asset/${CodeToIconMapper.map[data.iconId]}"))
-                            .into(chooseFragmentWeatherIMageView)
+                            .into(nav_choose)
                         tempImageLoader(data.temp)
                         chooseFragmentDescriptionTextView.text = data.description
                         val dateFormat: SimpleDateFormat = SimpleDateFormat("HH:mm")
                         dateFormat.timeZone = TimeZone.getTimeZone("GMT+4:30")
 //                        dateFormat.timeZone = TimeZone.getTimeZone("Iran/Tehran")
                         chooseFragmentSunriseTextView.text =
-                            dateFormat.format(Date(data.sunrise*1000))
+                            dateFormat.format(Date(data.sunrise * 1000))
                         chooseFragmentSunsetTextview.text =
-                            dateFormat.format(Date(data.sunset*1000))
+                            dateFormat.format(Date(data.sunset * 1000))
                         chooseFragmentTempTextView.text = "${data.temp.toInt()}c"
                         chooseFragmentVisibilityTextView.text = "${data.visibility / 1000} کیلومتر"
                         chooseFragmentMaxTempTextView.text = "${data.tempMax.toInt()}c"
@@ -149,9 +180,9 @@ class HomeFragment : DaggerFragment() {
                         chooseFragmentWindSpeedTextView.text = "${data.windSpeed} kmh"
                         chooseFragmentWindDegreeTextView.text =
                             convertWindDegreeToCompassDirection(data.windDegree)
-                        chooseFragmentLoadingLayout.visibility = View.GONE
-                        chooseFragmentInfoLayout.visibility = View.VISIBLE
-                        chooseFragmentInfoLayout.bringToFront()
+                        homeFragmentLoadingLayout.visibility = View.GONE
+                        homeFragmentInfoLayout.visibility = View.VISIBLE
+                        homeFragmentInfoLayout.bringToFront()
                     }
                 }
             }

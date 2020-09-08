@@ -20,11 +20,13 @@ class ChooseViewModel @Inject constructor(@Inject @JvmField var mainRepository: 
     private val filteredCities: MutableLiveData<Resource<List<City>?>> = MutableLiveData()
 
     fun getCities() {
-        cities.postValue(Resource.loading())
+        filteredCities.postValue(Resource.loading())
         CoroutineScope(Dispatchers.Main).launch {
             filteredCities.postValue(async {
                 cities.postValue(mainRepository.getCities())
                 return@async cities
+
+
             }.await().value)
         }
     }

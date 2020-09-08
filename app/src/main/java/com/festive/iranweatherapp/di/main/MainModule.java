@@ -1,7 +1,6 @@
 package com.festive.iranweatherapp.di.main;
 
 import android.app.Application;
-import android.content.Context;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;

@@ -5,8 +5,16 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_home"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="@string/menu_home" />
+            android:id="@+id/navViewChooseMenuItem"
+            android:icon="@drawable/location_icon"
+            android:title="انتخاب شهر" />
+        <item
+            android:id="@+id/navViewStoreCommentMenuItem"
+            android:icon="@drawable/comment_icon"
+            android:title="نظر دادن به برنامه در بازار" />
+        <item
+            android:id="@+id/navViewStoreMenuItem"
+            android:icon="@drawable/store_icon"
+            android:title="دیگر برنامه ها" />
     </group>
 </menu>
