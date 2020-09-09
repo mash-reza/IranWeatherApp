@@ -22,5 +22,9 @@
     <style name="AppTheme.Toolbar" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
         <item name="fontFamily">@font/iran_sans_bold</item>
     </style>
+    
+    <style name="SplashTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash</item>
+    </style>
 
 </resources>

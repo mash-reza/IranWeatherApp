@@ -169,8 +169,7 @@ class MainActivity : DaggerAppCompatActivity() {
                 val pInfo: PackageInfo =
                     applicationContext.packageManager.getPackageInfo(packageName, 0)
                 val oldVersion = pInfo.versionCode
-                if (true) {
-//                if (((newVersion ?: -1) > oldVersion) && isBazaarInstalled()) {
+                if (((newVersion ?: -1) > oldVersion) && isBazaarInstalled()) {
                     UpdateDialogFragment().apply {
                         onUpdateFragmentActionListener =
                             object : UpdateDialogFragment.OnUpdateFragmentActionListener {
